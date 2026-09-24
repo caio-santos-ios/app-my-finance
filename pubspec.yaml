@@ -21,12 +21,24 @@ dependencies:
   pinput: ^6.0.2
   font_awesome_flutter: ^11.0.0
   animated_bottom_navigation_bar: ^1.4.1
+  jwt_decoder: ^2.0.1
+  intl: ^0.20.2
+  flutter_localization: ^0.4.1
+  flutter_riverpod: ^3.4.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: "^0.14.4"
+
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  image_path: "assets/icons/icon.png"
+  remove_alpha_ios: true
+  adaptive_icon_foreground: "assets/icons/icon.png"
 
 flutter:
   uses-material-design: true
@@ -39,7 +51,7 @@ flutter:
     - assets/images/onboarding-3.png
     - assets/images/onboarding-4.png
 
-    - assets/icons/icon-google.png
+    - assets/icons/icon.png
 
   # fonts:
   #   - family: Schyler

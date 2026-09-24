@@ -14,8 +14,7 @@ class AuthLogin {
   factory AuthLogin.fromJson(Map<String, dynamic> json) {
     return AuthLogin(
       token: json['token'],
-      // refreshToken: json['refreshToken'],
-      refreshToken: "",
+      refreshToken: json['refreshToken'],
       photo: json['photo'],
       name: json['name'],
     );

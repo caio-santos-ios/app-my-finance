@@ -1,5 +1,8 @@
+import 'package:finance/pages/budget/budget_page.dart';
 import 'package:finance/pages/main/home_page.dart';
-import 'package:finance/pages/main/operation_page.dart';
+import 'package:finance/pages/operation/operation_details_page.dart';
+import 'package:finance/pages/operation/operation_page.dart';
+import 'package:finance/pages/profile/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -15,13 +18,14 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage>
     with SingleTickerProviderStateMixin {
-  int _currentIndex = 0;
   int _bottomNavIndex = 0;
   bool _isMenuOpen = false;
 
   late AnimationController _controller;
 
-  final _pages = [HomePage()];
+  final _pages = [HomePage(), OperationPage(), BudgetPage(), ProfilePage()];
+  final _labels = <String>["Home", "Transação", "Orçamento", "Perfil"];
+
   final iconList = <IconData>[
     Icons.home_filled,
     Icons.swap_horiz,
@@ -54,7 +58,7 @@ class _MainPageState extends State<MainPage>
     return Scaffold(
       body: Stack(
         children: [
-          _pages[_currentIndex],
+          _pages[_bottomNavIndex],
 
           if (_isMenuOpen)
             Positioned.fill(
@@ -70,24 +74,32 @@ class _MainPageState extends State<MainPage>
             bottom: 40,
             leftOffset: -90,
             delay: 0.0,
-            onPressed: () {
+            onPressed: () async {
               _toggleMenu();
-              Navigator.push(
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => OperationPage(type: "income"),
+                  builder: (context) =>
+                      const OperationDetailsPage(type: "income"),
                 ),
               );
             },
           ),
           _buildSpeedDialItem(
             icon: FontAwesomeIcons.arrowRightArrowLeft,
-            color: Colors.blue,
+            color: const Color(0xFF0077FF),
             bottom: 90,
             leftOffset: 0,
             delay: 0.1,
-            onPressed: () {
+            onPressed: () async {
               _toggleMenu();
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const OperationDetailsPage(type: "transfer"),
+                ),
+              );
             },
           ),
           _buildSpeedDialItem(
@@ -96,12 +108,13 @@ class _MainPageState extends State<MainPage>
             bottom: 40,
             leftOffset: 90,
             delay: 0.2,
-            onPressed: () {
+            onPressed: () async {
               _toggleMenu();
-              Navigator.push(
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => OperationPage(type: "expense"),
+                  builder: (context) =>
+                      const OperationDetailsPage(type: "expense"),
                 ),
               );
             },
@@ -110,7 +123,7 @@ class _MainPageState extends State<MainPage>
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _toggleMenu,
-        backgroundColor: Colors.amber,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         shape: const CircleBorder(),
         child: AnimatedRotation(
           turns: _isMenuOpen ? 0.125 : 0,
@@ -119,16 +132,28 @@ class _MainPageState extends State<MainPage>
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: AnimatedBottomNavigationBar(
-        icons: iconList,
+      bottomNavigationBar: AnimatedBottomNavigationBar.builder(
+        itemCount: iconList.length,
+        tabBuilder: (int index, bool isActive) {
+          final color = isActive ? Theme.of(context).colorScheme.primary : Colors.grey;
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(iconList[index], size: 24, color: color),
+              const SizedBox(height: 4),
+              Text(
+                _labels[index],
+                style: TextStyle(fontSize: 11, color: color),
+              ),
+            ],
+          );
+        },
         activeIndex: _bottomNavIndex,
         gapLocation: GapLocation.center,
         notchSmoothness: NotchSmoothness.defaultEdge,
         leftCornerRadius: 32,
         rightCornerRadius: 32,
         onTap: (index) => setState(() => _bottomNavIndex = index),
-        activeColor: Colors.amber,
-        inactiveColor: Colors.grey,
       ),
     );
   }

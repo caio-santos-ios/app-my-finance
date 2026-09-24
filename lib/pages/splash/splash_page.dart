@@ -1,4 +1,5 @@
 import 'package:finance/core/services/auth_service.dart';
+import 'package:finance/pages/auth/login_page.dart';
 import 'package:finance/pages/main/main_page.dart';
 import 'package:finance/pages/onboarding/onboarding_page.dart';
 import 'package:flutter/material.dart';
@@ -20,19 +21,30 @@ class _SplashPageState extends State<SplashPage> {
   Future<void> _onInit() async {
     await Future.delayed(Duration(milliseconds: 2000), () {
       if (mounted) {
-        String token = AuthService.getToken();
+        String refreshToken = AuthService.getRefreshToken();
 
-        if (token.isEmpty) {
+        if (refreshToken.isEmpty) {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => OnboardingPage()),
           );
         } else {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => MainPage(initialPage: 0)),
-            (route) => false,
-          );
+          bool isValidRefreshToken = AuthService.isValidRefreshToken();
+
+          if (isValidRefreshToken) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => MainPage(initialPage: 0)),
+              (route) => false,
+            );
+          } else {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => LoginPage()),
+              (route) => false,
+            );
+          }
+          ;
         }
       }
     });

@@ -81,7 +81,6 @@ class AppTheme {
               fontSize: 15,
               fontWeight: FontWeight.w700,
             ),
-
           ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.light100,
@@ -98,9 +97,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.light40,
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -126,7 +123,7 @@ class AppTheme {
       checkboxTheme: CheckboxThemeData(
         fillColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return AppColors.violet100; 
+            return AppColors.violet100;
           }
           return AppColors.light20;
         }),
@@ -138,6 +135,35 @@ class AppTheme {
         thickness: 1,
         space: 24,
       ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith<Color?>((states) {
+          if (states.contains(WidgetState.disabled)) {
+            return AppColors.violet100.withValues(alpha: 0.5);
+          }
+          if (states.contains(WidgetState.selected)) {
+            return AppColors.violet100;
+          }
+          return Colors.white;
+        }),
+
+        trackColor: WidgetStateProperty.resolveWith<Color?>((states) {
+          if (states.contains(WidgetState.disabled)) {
+            return Colors.grey.shade200;
+          }
+          if (states.contains(WidgetState.selected)) {
+            return AppColors.violet100.withValues(alpha: 0.5);
+          }
+          return Colors.grey.shade300;
+        }),
+
+        trackOutlineColor: WidgetStateProperty.resolveWith<Color?>((states) {
+          return Colors.transparent;
+        }),
+      ),
+      dialogTheme: DialogThemeData(backgroundColor: AppColors.light100),
+      dropdownMenuTheme: DropdownMenuThemeData(
+        
+      )
     );
   }
 }

@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 class UtilService {
   static void normalizeError(BuildContext context, DioException err) {
     if (err.response == null) {
-      print(err);
       Toastfy.show(context, "Falha interna", "error");
     } else {
       int status = err.response?.statusCode ?? 400;
@@ -18,9 +17,6 @@ class UtilService {
       }
 
       if (err.response != null) {
-        print(err.response);
-        print(err.error);
-        print(err.message);
         Toastfy.show(
           context,
           err.response?.data["message"],
