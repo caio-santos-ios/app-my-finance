@@ -1,3 +1,5 @@
+import 'package:finance/core/widgets/primary_button.dart';
+import 'package:finance/pages/category/category_page.dart';
 import 'package:flutter/material.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -21,9 +23,21 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (_isInitLoading) ...[
-                  Center(child: const CircularProgressIndicator()),
-                ],
+                // if (_isInitLoading) ...[
+                //   Center(child: const CircularProgressIndicator()),
+                // ],
+                PrimaryButton(
+                  isLoading: false,
+                  text: "Categoria",
+                  onPressed: () async {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CategoryPage(),
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),
