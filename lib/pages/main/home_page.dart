@@ -57,10 +57,13 @@ class HomePageState extends State<HomePage> {
   }
 
   Future<void> _initial() async {
-    setState(() => _isInitLoading = true);
-    await _get();
-    await _getSelectOperation();
-    setState(() => _isInitLoading = false);
+    try {
+      setState(() => _isInitLoading = true);
+      await _get();
+      await _getSelectOperation();
+    } finally {
+      setState(() => _isInitLoading = false);
+    }
   }
 
   Future<void> _get() async {
@@ -77,11 +80,8 @@ class HomePageState extends State<HomePage> {
 
   Future<void> _getSelectOperation() async {
     try {
-      DateTime today = DateTime.now();
-      final response = await _operationRepository.get(
-        query:
-            "gte\$and\$createdAt\$date=$today&lte\$and\$createdAt\$date=$today",
-      );
+      // DateTime today = DateTime.now();
+      final response = await _operationRepository.get();
       setState(() {
         _operations = response;
       });
@@ -319,7 +319,9 @@ class HomePageState extends State<HomePage> {
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
                       Text(
-                        operation.description.isEmpty ? "sem descrição" : maxText(operation.description, 30),
+                        operation.description.isEmpty
+                            ? "sem descrição"
+                            : maxText(operation.description, 25),
                         style: Theme.of(context).textTheme.headlineMedium,
                       ),
                     ],

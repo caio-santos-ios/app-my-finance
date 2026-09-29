@@ -17,6 +17,11 @@ class UtilService {
       }
 
       if (err.response != null) {
+        print(err.error);
+        print(err.message);
+        print(err.requestOptions.data);
+        print(err.requestOptions.baseUrl);
+        print(err.requestOptions.path);
         Toastfy.show(
           context,
           err.response?.data["message"],

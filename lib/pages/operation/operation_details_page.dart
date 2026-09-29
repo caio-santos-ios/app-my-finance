@@ -6,15 +6,20 @@ import 'package:finance/core/widgets/dropdown_widget.dart';
 import 'package:finance/core/widgets/primary_button.dart';
 import 'package:finance/core/widgets/text_form_field_widget.dart';
 import 'package:finance/core/widgets/toastify_widget.dart';
+import 'package:finance/models/_response_api.dart';
 import 'package:finance/models/bank.dart';
 import 'package:finance/models/category.dart';
 import 'package:finance/models/operation.dart';
+import 'package:finance/repositories/attachment_repository.dart';
 import 'package:finance/repositories/bank_repository.dart';
 import 'package:finance/repositories/category_repository.dart';
 import 'package:finance/repositories/operation_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:dotted_border/dotted_border.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:uuid/uuid.dart';
 
 class OperationDetailsPage extends StatefulWidget {
   const OperationDetailsPage({super.key, required this.type, this.operation});
@@ -30,6 +35,7 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
   final _categoryRepository = CategoryRepository();
   final _bankRepository = BankRepository();
   final _operationRepository = OperationRepository();
+  final _attachmentRepository = AttachmentRepository();
 
   final _valueController = TextEditingController(text: "R\$ 0,00");
   final _descriptionController = TextEditingController(text: "");
@@ -37,9 +43,11 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
   final _bankController = TextEditingController(text: "");
   final _destinationBankController = TextEditingController(text: "");
   bool _repeat = false;
+  final _picker = ImagePicker();
 
   bool _isLoading = false;
   bool _isInitLoading = true;
+  String _idTemp = "";
 
   List<Category> _categories = [];
   List<Bank> _banks = [];
@@ -100,17 +108,22 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
             widget.operation!.destinationBankId ?? "";
         _repeat = widget.operation!.repeat;
       });
+    } else {
+      _idTemp = Uuid().v4();
     }
     _initial();
   }
 
   Future<void> _initial() async {
-    setState(() => _isInitLoading = true);
-    if (widget.type != "transfer") {
-      await _getCategories();
+    try {
+      setState(() => _isInitLoading = true);
+      if (widget.type != "transfer") {
+        await _getCategories();
+      }
+      await _getBanks();
+    } finally {
+      setState(() => _isInitLoading = false);
     }
-    await _getBanks();
-    setState(() => _isInitLoading = false);
   }
 
   Future<void> _getCategories() async {
@@ -184,6 +197,7 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
         "type": widget.type,
         "value": value,
         "repeat": widget.type == "transfer" ? false : _repeat,
+        "parentId": _idTemp,
       };
 
       final response = isEditing
@@ -236,6 +250,31 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
       if (mounted) UtilService.normalizeError(context, err);
     } finally {
       setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final XFile? pickedFile = await _picker.pickImage(
+      source: source,
+      imageQuality: 85,
+    );
+
+    if (pickedFile != null) {
+      FormData data = FormData.fromMap({
+        'parentId': isEditing ? widget.operation?.id : _idTemp,
+        'parent': 'operations',
+        'file': await MultipartFile.fromFile(
+          pickedFile.path,
+          filename: pickedFile.name,
+        ),
+      });
+
+      ResponseApi response = await _attachmentRepository.create(data);
+
+      if (mounted) {
+        Toastfy.show(context, response.message, "success");
+        Navigator.pop(context);
+      }
     }
   }
 
@@ -465,6 +504,8 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
           placeholder: "Banco",
         ),
         const SizedBox(height: 14),
+        _buildFieldAttachment(),
+        const SizedBox(height: 14),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -506,6 +547,126 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildFieldAttachment() {
+    return InkWell(
+      onTap: () {
+        showModalBottomSheet(
+          context: context,
+          builder: (context) {
+            return Container(
+              padding: EdgeInsets.all(14),
+              height: 200,
+              width: double.infinity,
+              child: Column(
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: AppColors.violet40,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                  ),
+
+                  SizedBox(height: 40),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 14,
+                    children: [
+                      Container(
+                        height: 80,
+                        padding: EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.violet40,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            FaIcon(
+                              FontAwesomeIcons.solidCamera,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            Text(
+                              "Camera",
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontSize: 16,
+                                fontWeight: FontWeight(600),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () async {
+                          await _pickImage(ImageSource.gallery);
+                        },
+                        child: Container(
+                          height: 80,
+                          padding: EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppColors.violet40,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              FaIcon(
+                                FontAwesomeIcons.solidImage,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              Text(
+                                "Galeria",
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight(600),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+      child: DottedBorder(
+        color: AppColors.light20,
+        strokeWidth: 1,
+        padding: EdgeInsets.symmetric(horizontal: 12),
+        strokeCap: StrokeCap.round,
+        dashPattern: [6],
+        child: SizedBox(
+          height: 55,
+          width: double.infinity,
+          child: Center(
+            child: Row(
+              spacing: 8,
+              children: [
+                FaIcon(FontAwesomeIcons.paperclip, color: AppColors.light20),
+                Text(
+                  "Adicionar anexo",
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

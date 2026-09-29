@@ -153,7 +153,7 @@ class AppTheme {
           if (states.contains(WidgetState.selected)) {
             return AppColors.violet100.withValues(alpha: 0.5);
           }
-          return Colors.grey.shade300;
+          return AppColors.violet20;
         }),
 
         trackOutlineColor: WidgetStateProperty.resolveWith<Color?>((states) {
@@ -163,6 +163,9 @@ class AppTheme {
       dialogTheme: DialogThemeData(backgroundColor: AppColors.light100),
       dropdownMenuTheme: DropdownMenuThemeData(
         
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: AppColors.light20
       )
     );
   }

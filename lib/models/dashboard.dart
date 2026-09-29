@@ -1,5 +1,3 @@
-import 'package:finance/models/operation.dart';
-
 class Dashboard {
   final double totalAccount;
   final double totalAccountIncome;
@@ -8,7 +6,7 @@ class Dashboard {
   Dashboard({
     required this.totalAccount,
     required this.totalAccountIncome,
-    required this.totalAccountExpense
+    required this.totalAccountExpense,
   });
 
   factory Dashboard.fromJson(Map<String, dynamic> json) {

@@ -59,6 +59,7 @@ class _CategoryPageState extends State<CategoryPage> {
 
   Future<void> _save() async {
     try {
+      setState(() => _isLoading = true);
       final data = {
         "name": _nameController.text,
         "type": _typeController.text,

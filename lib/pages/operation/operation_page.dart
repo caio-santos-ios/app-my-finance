@@ -28,9 +28,12 @@ class _OperationPageState extends State<OperationPage> {
   }
 
   Future<void> _initial() async {
-    // setState(() => _isInitLoading = true);
-    // await _getOperations();
-    // setState(() => _isInitLoading = false);
+    try {
+      setState(() => _isInitLoading = true);
+      await _getOperations();
+    } finally {
+      setState(() => _isInitLoading = false);
+    }
   }
 
   Future<void> _getOperations() async {
