@@ -141,11 +141,15 @@ class _BudgetPageState extends State<BudgetPage> {
       ),
       bottomNavigationBar: Container(
         color: AppColors.light80,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: PrimaryButton(
-          isLoading: false,
-          text: "Criar um Orçamento",
-          onPressed: _navigateToCreate,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: PrimaryButton(
+              isLoading: false,
+              text: "Criar um Orçamento",
+              onPressed: _navigateToCreate,
+            ),
+          ),
         ),
       ),
     );

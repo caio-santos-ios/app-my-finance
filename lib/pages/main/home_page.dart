@@ -23,7 +23,6 @@ class HomePageState extends State<HomePage> {
   final _dashboardRepository = DashboardRepository();
   final _operationRepository = OperationRepository();
 
-  final _monthController = TextEditingController(text: "janeiro");
   final _months = [
     "janeiro",
     "fevereiro",
@@ -38,6 +37,7 @@ class HomePageState extends State<HomePage> {
     "novembro",
     "dezembro",
   ];
+  late DateTime _selectedDate;
 
   bool _isInitLoading = true;
   Dashboard _dashboard = Dashboard(
@@ -50,23 +50,25 @@ class HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _selectedDate = DateTime.now();
     DateTime today = DateTime.now();
-    _monthController.text = _months[today.month - 1];
-
-    _initial();
+    DateTime startDate = DateTime(today.year, today.month, 1);
+    _initial(
+      "gte\$and\$createdAt\$date=$startDate&lte\$and\$createdAt\$date=$today",
+    );
   }
 
-  Future<void> _initial() async {
+  Future<void> _initial(String query) async {
     try {
       setState(() => _isInitLoading = true);
-      await _get();
-      await _getSelectOperation();
+      await _get(query);
+      await _getSelectOperation(query);
     } finally {
       setState(() => _isInitLoading = false);
     }
   }
 
-  Future<void> _get() async {
+  Future<void> _get(String query) async {
     try {
       DateTime today = DateTime.now();
       final response = await _dashboardRepository.get(today, today);
@@ -78,16 +80,47 @@ class HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _getSelectOperation() async {
+  Future<void> _getSelectOperation(String query) async {
     try {
-      // DateTime today = DateTime.now();
-      final response = await _operationRepository.get();
+      final response = await _operationRepository.get(query: query);
       setState(() {
         _operations = response;
       });
     } on DioException catch (err) {
       if (mounted) UtilService.normalizeError(context, err);
     }
+  }
+
+  void _previousMonth() async {
+    setState(() {
+      _selectedDate = DateTime(_selectedDate.year, _selectedDate.month - 1);
+    });
+
+    DateTime startDate = DateTime(
+      _selectedDate.year,
+      _selectedDate.month - 1,
+      1,
+    );
+    DateTime endDate = DateTime(_selectedDate.year, _selectedDate.month, 0);
+    await _initial(
+      "gte\$and\$createdAt\$date=$startDate&lte\$and\$createdAt\$date=$endDate",
+    );
+  }
+
+  void _nextMonth() async {
+    setState(() {
+      _selectedDate = DateTime(_selectedDate.year, _selectedDate.month + 1);
+    });
+
+    DateTime startDate = DateTime(
+      _selectedDate.year,
+      _selectedDate.month - 1,
+      1,
+    );
+    DateTime endDate = DateTime(_selectedDate.year, _selectedDate.month, 0);
+    await _initial(
+      "gte\$and\$createdAt\$date=$startDate&lte\$and\$createdAt\$date=$endDate",
+    );
   }
 
   String _normalizeValue(double value) {
@@ -124,7 +157,20 @@ class HomePageState extends State<HomePage> {
           padding: EdgeInsetsGeometry.all(18),
           child: RefreshIndicator(
             onRefresh: () async {
-              await _initial();
+              DateTime startDate = DateTime(
+                _selectedDate.year,
+                _selectedDate.month,
+                1,
+              );
+              DateTime endDate = DateTime(
+                _selectedDate.year,
+                _selectedDate.month + 1,
+                0,
+              );
+
+              await _initial(
+                "gte\$and\$createdAt\$date=$startDate&lte\$and\$createdAt\$date=$endDate",
+              );
             },
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -134,6 +180,7 @@ class HomePageState extends State<HomePage> {
                 ],
 
                 if (!_isInitLoading) ...[
+                  _buildFilterMonth(),
                   SizedBox(height: 20),
                   _buildAccountBalance(),
                   SizedBox(height: 20),
@@ -167,6 +214,49 @@ class HomePageState extends State<HomePage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildFilterMonth() {
+    final monthName = _months[_selectedDate.month - 1];
+    final year = _selectedDate.year;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: const FaIcon(
+            FontAwesomeIcons.chevronLeft,
+            color: AppColors.dark75,
+            size: 14,
+          ),
+          onPressed: _previousMonth,
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.light100,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.light20),
+          ),
+          child: Text(
+            "$monthName $year",
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.dark75,
+            ),
+          ),
+        ),
+        IconButton(
+          icon: const FaIcon(
+            FontAwesomeIcons.chevronRight,
+            color: AppColors.dark75,
+            size: 14,
+          ),
+          onPressed: _nextMonth,
+        ),
+      ],
     );
   }
 
@@ -273,7 +363,7 @@ class HomePageState extends State<HomePage> {
           );
 
           if (result == true) {
-            await _initial();
+            await _initial("");
           }
         },
         child: Padding(
