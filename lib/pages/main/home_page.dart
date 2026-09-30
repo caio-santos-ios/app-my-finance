@@ -321,7 +321,7 @@ class HomePageState extends State<HomePage> {
                       Text(
                         operation.description.isEmpty
                             ? "sem descrição"
-                            : maxText(operation.description, 25),
+                            : maxText(operation.description, 20),
                         style: Theme.of(context).textTheme.headlineMedium,
                       ),
                     ],
@@ -347,7 +347,7 @@ class HomePageState extends State<HomePage> {
                     ),
                   ),
                   Text(
-                    DateFormat("dd/MM HH:mm").format(operation.createdAt),
+                    DateFormat("dd/MM/yyyy HH:mm").format(operation.createdAt),
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
                 ],
