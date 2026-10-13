@@ -3,10 +3,8 @@ import 'package:dio/dio.dart';
 import 'package:finance/core/services/util_service.dart';
 import 'package:finance/core/theme/app_colors.dart';
 import 'package:finance/core/widgets/primary_button.dart';
-import 'package:finance/models/category.dart';
 import 'package:finance/models/operation.dart';
 import 'package:finance/pages/operation/operation_details_page.dart';
-import 'package:finance/repositories/category_repository.dart';
 import 'package:finance/repositories/operation_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -21,11 +19,9 @@ class OperationPage extends StatefulWidget {
 
 class _OperationPageState extends State<OperationPage> {
   final _operationRepository = OperationRepository();
-  final _categoryRepository = CategoryRepository();
 
   bool _isInitLoading = true;
   List<Operation> _allOperations = [];
-  List<Category> _categories = [];
 
   late DateTime _selectedDate;
   final List<String> _months = [
@@ -59,7 +55,6 @@ class _OperationPageState extends State<OperationPage> {
       setState(() => _isInitLoading = true);
       await Future.wait([
         _getOperations(),
-        _getCategories(),
       ]);
     } finally {
       setState(() => _isInitLoading = false);
@@ -75,15 +70,6 @@ class _OperationPageState extends State<OperationPage> {
     } on DioException catch (err) {
       if (mounted) UtilService.normalizeError(context, err);
     }
-  }
-
-  Future<void> _getCategories() async {
-    try {
-      final response = await _categoryRepository.getSelect();
-      setState(() {
-        _categories = response;
-      });
-    } catch (_) {}
   }
 
   void _previousMonth() {
@@ -782,7 +768,7 @@ class _OperationPageState extends State<OperationPage> {
 
     Color iconBgColor = AppColors.red20;
     Color iconColor = AppColors.red100;
-    FaIconData icon = FontAwesomeIcons.bagShopping;
+    FaIconData icon = FontAwesomeIcons.dollarSign;
 
     if (isTransfer) {
       iconBgColor = AppColors.blue20;

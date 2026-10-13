@@ -53,25 +53,24 @@ class HomePageState extends State<HomePage> {
     _selectedDate = DateTime.now();
     DateTime today = DateTime.now();
     DateTime startDate = DateTime(today.year, today.month, 1);
-    _initial(
-      "gte\$and\$createdAt\$date=$startDate&lte\$and\$createdAt\$date=$today",
-    );
+    _initial(startDate, today);
   }
 
-  Future<void> _initial(String query) async {
+  Future<void> _initial(DateTime startDate, DateTime endDate) async {
     try {
       setState(() => _isInitLoading = true);
-      await _get(query);
+      String query =
+          "gte\$and\$createdAt\$date=$startDate&lte\$and\$createdAt\$date=$endDate";
+      await _get(startDate, endDate);
       await _getSelectOperation(query);
     } finally {
       setState(() => _isInitLoading = false);
     }
   }
 
-  Future<void> _get(String query) async {
+  Future<void> _get(DateTime startDate, DateTime endDate) async {
     try {
-      DateTime today = DateTime.now();
-      final response = await _dashboardRepository.get(today, today);
+      final response = await _dashboardRepository.get(startDate, endDate);
       setState(() {
         _dashboard = response!;
       });
@@ -96,15 +95,9 @@ class HomePageState extends State<HomePage> {
       _selectedDate = DateTime(_selectedDate.year, _selectedDate.month - 1);
     });
 
-    DateTime startDate = DateTime(
-      _selectedDate.year,
-      _selectedDate.month - 1,
-      1,
-    );
-    DateTime endDate = DateTime(_selectedDate.year, _selectedDate.month, 0);
-    await _initial(
-      "gte\$and\$createdAt\$date=$startDate&lte\$and\$createdAt\$date=$endDate",
-    );
+    DateTime startDate = DateTime(_selectedDate.year, _selectedDate.month, 1);
+    DateTime endDate = DateTime(_selectedDate.year, _selectedDate.month + 1, 0);
+    await _initial(startDate, endDate);
   }
 
   void _nextMonth() async {
@@ -112,15 +105,9 @@ class HomePageState extends State<HomePage> {
       _selectedDate = DateTime(_selectedDate.year, _selectedDate.month + 1);
     });
 
-    DateTime startDate = DateTime(
-      _selectedDate.year,
-      _selectedDate.month - 1,
-      1,
-    );
-    DateTime endDate = DateTime(_selectedDate.year, _selectedDate.month, 0);
-    await _initial(
-      "gte\$and\$createdAt\$date=$startDate&lte\$and\$createdAt\$date=$endDate",
-    );
+    DateTime startDate = DateTime(_selectedDate.year, _selectedDate.month, 1);
+    DateTime endDate = DateTime(_selectedDate.year, _selectedDate.month + 1, 0);
+    await _initial(startDate, endDate);
   }
 
   String _normalizeValue(double value) {
@@ -168,9 +155,7 @@ class HomePageState extends State<HomePage> {
                 0,
               );
 
-              await _initial(
-                "gte\$and\$createdAt\$date=$startDate&lte\$and\$createdAt\$date=$endDate",
-              );
+              await _initial(startDate, endDate);
             },
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -341,108 +326,155 @@ class HomePageState extends State<HomePage> {
   }
 
   Widget _buildCardOperation(Operation operation) {
-    String maxText(String text, int max) {
-      if (text.length >= max) return "${text.substring(0, max)}...";
+    final isTransfer = operation.type == "transfer";
+    final isIncome = operation.type == "income";
 
-      return text;
+    Color iconBgColor = AppColors.red20;
+    Color iconColor = AppColors.red100;
+    FaIconData icon = FontAwesomeIcons.dollarSign;
+
+    if (isTransfer) {
+      iconBgColor = AppColors.blue20;
+      iconColor = AppColors.blue100;
+      icon = FontAwesomeIcons.arrowRightArrowLeft;
+    } else if (isIncome) {
+      iconBgColor = AppColors.green20;
+      iconColor = AppColors.green100;
+      icon = FontAwesomeIcons.dollarSign;
     }
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => OperationDetailsPage(
-                type: operation.type,
-                operation: operation,
-              ),
-            ),
-          );
+    final categoryTitle = isTransfer
+        ? "Transferência"
+        : (operation.categoryName.isNotEmpty
+              ? operation.categoryName
+              : "Sem categoria");
 
-          if (result == true) {
-            await _initial("");
-          }
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                spacing: 8,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: operation.type == "transfer"
-                          ? const Color(0xFF0077FF).withValues(alpha: 0.2)
-                          : operation.type == "income"
-                          ? Colors.green[100]
-                          : Colors.red[100],
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Center(
-                      child: FaIcon(
-                        operation.type == "transfer"
-                            ? FontAwesomeIcons.arrowRightArrowLeft
-                            : FontAwesomeIcons.dollarSign,
-                        color: operation.type == "transfer"
-                            ? const Color(0xFF0077FF)
-                            : operation.type == "income"
-                            ? Colors.green
-                            : Colors.red,
-                        size: operation.type == "transfer" ? 16 : null,
-                      ),
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: AppColors.light100,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OperationDetailsPage(
+                  type: operation.type,
+                  operation: operation,
+                ),
+              ),
+            );
+            if (result == true) {
+              _selectedDate = DateTime.now();
+              DateTime startDate = DateTime(
+                _selectedDate.year,
+                _selectedDate.month,
+                1,
+              );
+              DateTime endDate = DateTime(
+                _selectedDate.year,
+                _selectedDate.month + 1,
+                0,
+              );
+
+              await _initial(startDate, endDate);
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Row(
                     children: [
-                      Text(
-                        operation.type == "transfer"
-                            ? "Transferência"
-                            : maxText(operation.categoryName, 20),
-                        style: Theme.of(context).textTheme.titleSmall,
+                      Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: iconBgColor,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Center(
+                          child: FaIcon(icon, color: iconColor, size: 20),
+                        ),
                       ),
-                      Text(
-                        operation.description.isEmpty
-                            ? "sem descrição"
-                            : maxText(operation.description, 20),
-                        style: Theme.of(context).textTheme.headlineMedium,
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              categoryTitle,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.dark75,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              operation.description.isNotEmpty
+                                  ? operation.description
+                                  : "Sem descrição",
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.dark25,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                ],
-              ),
-
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    _normalizeValueCardOperation(
-                      operation.value,
-                      operation.type,
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      _normalizeValueCardOperation(
+                        operation.value,
+                        operation.type,
+                      ),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isIncome
+                            ? AppColors.green100
+                            : isTransfer
+                            ? AppColors.blue100
+                            : AppColors.red100,
+                      ),
                     ),
-                    style: TextStyle(
-                      color: operation.type == "income"
-                          ? Colors.green
-                          : operation.type == "expense"
-                          ? Colors.red
-                          : const Color(0xFF0077FF),
-                      fontWeight: FontWeight(600),
+                    const SizedBox(height: 4),
+                    Text(
+                      DateFormat("dd/MM HH:mm").format(operation.createdAt),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.dark25,
+                      ),
                     ),
-                  ),
-                  Text(
-                    DateFormat("dd/MM/yyyy HH:mm").format(operation.createdAt),
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

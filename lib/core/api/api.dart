@@ -3,8 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class ApiClient {
-  static const String _prodUrl = 'https://api-my-finance-fu00.onrender.com/api/';
-  // static const String _devUrl = 'http://192.168.1.112:5140/api/';
+  static const String _prodUrl = 'https://my-finances-caio-santos-ios.duckdns.org/api/';
   static const String _devUrl = 'http://192.168.18.72:5140/api/';
 
   static String get baseUrl {
