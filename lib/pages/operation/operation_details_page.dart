@@ -46,6 +46,7 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
   final _dateController = TextEditingController(text: "");
   DateTime _selectedDate = DateTime.now();
   bool _repeat = false;
+  String _recurrence = "";
   final _picker = ImagePicker();
 
   bool _isLoading = false;
@@ -96,6 +97,19 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
     }
   }
 
+  String _getRecurrenceLabel(String recurrence) {
+    switch (recurrence) {
+      case "weekly":
+        return "Semanal";
+      case "monthly":
+        return "Mensal";
+      case "yearly":
+        return "Anual";
+      default:
+        return "";
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -110,6 +124,7 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
         _destinationBankController.text =
             widget.operation!.destinationBankId ?? "";
         _repeat = widget.operation!.repeat;
+        _recurrence = widget.operation!.recurrence;
         _selectedDate = widget.operation!.createdAt;
         _dateController.text = DateFormat("dd/MM/yyyy").format(_selectedDate);
       });
@@ -133,6 +148,102 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
       setState(() {
         _selectedDate = picked;
         _dateController.text = DateFormat("dd/MM/yyyy").format(picked);
+      });
+    }
+  }
+
+  Future<void> _showRecurrenceModal() async {
+    final tempController = TextEditingController(
+      text: _recurrence.isNotEmpty ? _recurrence : "monthly",
+    );
+
+    final String? selected = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(
+            color: AppColors.light100,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(32),
+              topRight: Radius.circular(32),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: AppColors.light20,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const Text(
+                "Frequência da Repetição",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.dark75,
+                ),
+              ),
+              const SizedBox(height: 16),
+              DropdownWidget(
+                controller: tempController,
+                items: const [
+                  DropdownMenuItem<String>(
+                    value: "weekly",
+                    child: Text("Semanal"),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: "monthly",
+                    child: Text("Mensal"),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: "yearly",
+                    child: Text("Anual"),
+                  ),
+                ],
+                placeholder: "Recorrência",
+              ),
+              const SizedBox(height: 24),
+              PrimaryButton(
+                isLoading: false,
+                text: "Próximo",
+                onPressed: () {
+                  if (tempController.text.isEmpty) {
+                    Toastfy.show(
+                      context,
+                      "Selecione a recorrência",
+                      "warning",
+                    );
+                    return;
+                  }
+                  Navigator.pop(ctx, tempController.text);
+                },
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (selected != null && selected.isNotEmpty) {
+      setState(() {
+        _repeat = true;
+        _recurrence = selected;
+      });
+    } else if (_recurrence.isEmpty) {
+      setState(() {
+        _repeat = false;
       });
     }
   }
@@ -208,7 +319,13 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
           Toastfy.show(context, "O Banco é obrigatório", "warning");
           return;
         }
+        if (_repeat && _recurrence.isEmpty) {
+          Toastfy.show(context, "A Recorrência é obrigatória", "warning");
+          return;
+        }
       }
+
+      final isRepeating = widget.type == "transfer" ? false : _repeat;
 
       final data = {
         if (isEditing) "id": widget.operation!.id,
@@ -220,7 +337,8 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
         "type": widget.type,
         "value": value,
         "createdAt": DateFormat("yyyy-MM-dd").format(_selectedDate),
-        "repeat": widget.type == "transfer" ? false : _repeat,
+        "repeat": isRepeating,
+        "recurrence": isRepeating ? _recurrence : "",
         "parentId": _idTemp,
       };
 
@@ -558,14 +676,74 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
             ),
             Switch(
               value: _repeat,
-              onChanged: (value) {
-                setState(() {
-                  _repeat = value;
-                });
+              onChanged: (value) async {
+                if (value) {
+                  await _showRecurrenceModal();
+                } else {
+                  setState(() {
+                    _repeat = false;
+                    _recurrence = "";
+                  });
+                }
               },
             ),
           ],
         ),
+        if (_repeat && _recurrence.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.light80,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.light20),
+            ),
+            child: SafeArea(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Frequência",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.dark75,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _getRecurrenceLabel(_recurrence),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.dark25,
+                        ),
+                      ),
+                    ],
+                  ),
+                  TextButton(
+                    onPressed: _showRecurrenceModal,
+                    style: TextButton.styleFrom(
+                      backgroundColor: AppColors.violet20,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    child: const Text(
+                      "Editar",
+                      style: TextStyle(
+                        color: AppColors.violet100,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
         const SizedBox(height: 40),
         PrimaryButton(
           isLoading: _isLoading,

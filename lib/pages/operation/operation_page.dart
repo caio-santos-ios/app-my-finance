@@ -865,6 +865,19 @@ class _OperationPageState extends State<OperationPage> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
+                            if (operation.bankName.isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                operation.bankName,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.dark50,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ],
                         ),
                       ),
