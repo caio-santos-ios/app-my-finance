@@ -19,6 +19,7 @@ import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 class OperationDetailsPage extends StatefulWidget {
@@ -42,6 +43,8 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
   final _categoryController = TextEditingController(text: "");
   final _bankController = TextEditingController(text: "");
   final _destinationBankController = TextEditingController(text: "");
+  final _dateController = TextEditingController(text: "");
+  DateTime _selectedDate = DateTime.now();
   bool _repeat = false;
   final _picker = ImagePicker();
 
@@ -107,11 +110,31 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
         _destinationBankController.text =
             widget.operation!.destinationBankId ?? "";
         _repeat = widget.operation!.repeat;
+        _selectedDate = widget.operation!.createdAt;
+        _dateController.text = DateFormat("dd/MM/yyyy").format(_selectedDate);
       });
     } else {
       _idTemp = Uuid().v4();
+      _selectedDate = DateTime.now();
+      _dateController.text = DateFormat("dd/MM/yyyy").format(_selectedDate);
     }
     _initial();
+  }
+
+  Future<void> _selectDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      locale: const Locale('pt', 'BR'),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+        _dateController.text = DateFormat("dd/MM/yyyy").format(picked);
+      });
+    }
   }
 
   Future<void> _initial() async {
@@ -196,6 +219,7 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
         "description": _descriptionController.text,
         "type": widget.type,
         "value": value,
+        "createdAt": DateFormat("yyyy-MM-dd").format(_selectedDate),
         "repeat": widget.type == "transfer" ? false : _repeat,
         "parentId": _idTemp,
       };
@@ -454,6 +478,8 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
             return null;
           },
         ),
+        const SizedBox(height: 14),
+        _buildDateField(),
         const SizedBox(height: 40),
         PrimaryButton(
           isLoading: _isLoading,
@@ -504,6 +530,8 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
           placeholder: "Banco",
         ),
         const SizedBox(height: 14),
+        _buildDateField(),
+        const SizedBox(height: 14),
         _buildFieldAttachment(),
         const SizedBox(height: 14),
         Row(
@@ -547,6 +575,34 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildDateField() {
+    return TextFormField(
+      controller: _dateController,
+      readOnly: true,
+      onTap: _selectDate,
+      style: TextStyle(color: AppColors.dark50),
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+        hintText: "Data de Lançamento",
+        hintStyle: TextStyle(color: AppColors.dark25),
+        filled: true,
+        suffixIcon: Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FaIcon(
+                FontAwesomeIcons.calendar,
+                color: Theme.of(context).textTheme.headlineLarge?.color,
+                size: 18,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

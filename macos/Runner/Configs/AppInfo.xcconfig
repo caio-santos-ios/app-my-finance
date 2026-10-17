@@ -8,7 +8,7 @@
 PRODUCT_NAME = finance
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = br.com.caio.santos.ios.finance
+PRODUCT_BUNDLE_IDENTIFIER = com.caio.santos.ios.finance
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 br.com.caio.santos.ios. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 com.caio.santos.ios. All rights reserved.

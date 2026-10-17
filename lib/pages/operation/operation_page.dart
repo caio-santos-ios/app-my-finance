@@ -892,7 +892,7 @@ class _OperationPageState extends State<OperationPage> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      DateFormat("HH:mm").format(operation.createdAt),
+                      DateFormat("dd/MM/yyyy").format(operation.createdAt),
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.dark25,

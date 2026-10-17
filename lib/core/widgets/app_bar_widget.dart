@@ -10,13 +10,13 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
   final bool hasIconNotification;
 
   const AppBarWidget({
-    Key? key,
+    super.key,
     required this.titleText,
     this.leftActions,
     this.rightActions,
     this.hasProfilePhoto = true,
     this.hasIconNotification = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,23 +31,17 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
             )
           : null,
       actions: [
-        if (leftActions != null) ...leftActions!,
+        ...?leftActions,
 
         if (hasIconNotification)
           InkWell(
-            // onTap: () {
-            //   Navigator.push(
-            //     context,
-            //     MaterialPageRoute(builder: (context) => NotificationPage()),
-            //   );
-            // },
             child: FaIcon(
               FontAwesomeIcons.bell,
               color: Theme.of(context).colorScheme.primary,
             ),
           ),
 
-        if (rightActions != null) ...rightActions!,
+        ...?rightActions,
       ],
       actionsPadding: EdgeInsets.only(right: 18),
     );

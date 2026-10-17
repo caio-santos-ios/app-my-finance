@@ -4,7 +4,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 class ApiClient {
   static const String _prodUrl = 'https://my-finances-caio-santos-ios.duckdns.org/api/';
-  static const String _devUrl = 'http://192.168.18.72:5140/api/';
+  // static const String _devUrl = 'http://192.168.18.72:5140/api/';
+  static const String _devUrl = 'https://my-finances-caio-santos-ios.duckdns.org/api/';
 
   static String get baseUrl {
     const customUrl = String.fromEnvironment('BASE_URL');

@@ -5,8 +5,10 @@ import 'package:finance/core/theme/app_colors.dart';
 import 'package:finance/core/widgets/toastify_widget.dart';
 import 'package:finance/models/user.dart';
 import 'package:finance/pages/auth/login_page.dart';
+import 'package:finance/pages/bank/bank_page.dart';
 import 'package:finance/pages/category/category_page.dart';
 import 'package:finance/pages/profile/edit_profile_page.dart';
+import 'package:finance/pages/profile/privacy_policy_page.dart';
 import 'package:finance/repositories/user_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -323,6 +325,20 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     );
   }
 
+  void _navigateToBanks() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const BankPage()),
+    );
+  }
+
+  void _navigateToPrivacyPolicy() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const PrivacyPolicyPage()),
+    );
+  }
+
   void _logout() {
     showDialog(
       context: context,
@@ -551,11 +567,27 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               label: 'Categorias',
               onTap: _navigateToCategories,
             ),
+            _buildDivider(),
+            _buildMenuItem(
+              icon: FontAwesomeIcons.buildingColumns,
+              iconColor: AppColors.green100,
+              bgColor: AppColors.green20,
+              label: 'Bancos',
+              onTap: _navigateToBanks,
+            ),
           ]),
           const SizedBox(height: 20),
           _buildSectionLabel('Outros'),
           const SizedBox(height: 8),
           _buildMenuCard([
+            _buildMenuItem(
+              icon: FontAwesomeIcons.shieldHalved,
+              iconColor: AppColors.blue100,
+              bgColor: AppColors.blue20,
+              label: 'Política de Privacidade',
+              onTap: _navigateToPrivacyPolicy,
+            ),
+            _buildDivider(),
             _buildMenuItem(
               icon: FontAwesomeIcons.circleInfo,
               iconColor: AppColors.green100,

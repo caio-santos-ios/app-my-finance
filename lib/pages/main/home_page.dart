@@ -44,6 +44,9 @@ class HomePageState extends State<HomePage> {
     totalAccount: 0,
     totalAccountIncome: 0,
     totalAccountExpense: 0,
+    totalMonthAccount: 0,
+    totalAccountMonthExpense: 0,
+    totalAccountMonthIncome: 0
   );
   List<Operation> _operations = [];
 
@@ -60,7 +63,7 @@ class HomePageState extends State<HomePage> {
     try {
       setState(() => _isInitLoading = true);
       String query =
-          "gte\$and\$createdAt\$date=$startDate&lte\$and\$createdAt\$date=$endDate";
+          "gte\$and\$createdAt\$date=$startDate&lt\$and\$createdAt\$date=$endDate";
       await _get(startDate, endDate);
       await _getSelectOperation(query);
     } finally {
@@ -168,6 +171,7 @@ class HomePageState extends State<HomePage> {
                   _buildFilterMonth(),
                   SizedBox(height: 20),
                   _buildAccountBalance(),
+                  _buildAccountMonthBalance(),
                   SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -175,10 +179,12 @@ class HomePageState extends State<HomePage> {
                       _buildCardIncomeExpense(
                         "income",
                         _dashboard.totalAccountIncome,
+                        _dashboard.totalAccountMonthIncome,
                       ),
                       _buildCardIncomeExpense(
                         "expense",
                         _dashboard.totalAccountExpense,
+                        _dashboard.totalAccountMonthExpense,
                       ),
                     ],
                   ),
@@ -267,10 +273,28 @@ class HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildCardIncomeExpense(String type, double value) {
+  Widget _buildAccountMonthBalance() {
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
+        children: [
+          Text(
+            "Saldo do mês",
+            style: Theme.of(context).textTheme.headlineLarge,
+          ),
+          Text(
+            UtilBrasilFields.obterReal(_dashboard.totalMonthAccount),
+            style: Theme.of(context).textTheme.headlineLarge,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCardIncomeExpense(String type, double value, double secondaryValue) {
     return Container(
       width: (MediaQuery.of(context).size.width / 2) - 26,
-      height: 70,
+      height: 80,
       padding: EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: type == "income" ? Colors.green : Colors.red,
@@ -315,6 +339,13 @@ class HomePageState extends State<HomePage> {
                 _normalizeValue(value),
                 style: TextStyle(
                   fontSize: Theme.of(context).textTheme.titleSmall?.fontSize,
+                  color: AppColors.light100,
+                ),
+              ),
+              Text(
+                _normalizeValue(secondaryValue),
+                style: TextStyle(
+                  fontSize: 12,
                   color: AppColors.light100,
                 ),
               ),
@@ -465,7 +496,7 @@ class HomePageState extends State<HomePage> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      DateFormat("dd/MM HH:mm").format(operation.createdAt),
+                      DateFormat("dd/MM/yyyy").format(operation.createdAt),
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.dark25,

@@ -44,7 +44,6 @@ class _SplashPageState extends State<SplashPage> {
               (route) => false,
             );
           }
-          ;
         }
       }
     });

@@ -6,6 +6,7 @@ import 'package:finance/core/widgets/text_form_field_widget.dart';
 import 'package:finance/core/widgets/toastify_widget.dart';
 import 'package:finance/pages/auth/confirmation_page.dart';
 import 'package:finance/pages/auth/login_page.dart';
+import 'package:finance/pages/profile/privacy_policy_page.dart';
 import 'package:finance/repositories/auth_repository.dart';
 import 'package:flutter/material.dart';
 
@@ -148,18 +149,47 @@ class _RegisterPageState extends State<RegisterPage> {
                         },
                       ),
                       Expanded(
-                        child: Text(
-                          "Ao se cadastrar, você concorda com os termos de serviço e política de privacidade",
-                          style: TextStyle(
-                            color: Theme.of(
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
                               context,
-                            ).textTheme.bodyMedium?.color,
-                            fontSize: Theme.of(
-                              context,
-                            ).textTheme.bodyMedium?.fontSize,
-                            fontWeight: FontWeight(600),
+                              MaterialPageRoute(
+                                builder: (context) => const PrivacyPolicyPage(),
+                              ),
+                            );
+                          },
+                          child: Text.rich(
+                            TextSpan(
+                              text: "Ao se cadastrar, você concorda com os ",
+                              style: TextStyle(
+                                color: Theme.of(
+                                  context,
+                                ).textTheme.bodyMedium?.color,
+                                fontSize: Theme.of(
+                                  context,
+                                ).textTheme.bodyMedium?.fontSize,
+                                fontWeight: const FontWeight(600),
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: "termos de serviço",
+                                  style: TextStyle(
+                                    color: AppColors.violet100,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                                const TextSpan(text: " e "),
+                                TextSpan(
+                                  text: "política de privacidade",
+                                  style: TextStyle(
+                                    color: AppColors.violet100,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            softWrap: true,
                           ),
-                          softWrap: true,
                         ),
                       ),
                     ],
