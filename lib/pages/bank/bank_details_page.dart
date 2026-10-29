@@ -56,6 +56,7 @@ class _BankDetailsPageState extends State<BankDetailsPage> {
   }
 
   Future<void> _save() async {
+    if (_isLoading) return;
     if (!_formKey.currentState!.validate()) return;
 
     if (_codeController.text.isEmpty) {

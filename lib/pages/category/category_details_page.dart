@@ -47,6 +47,7 @@ class _CategoryDetailsPageState extends State<CategoryDetailsPage> {
   }
 
   Future<void> _save() async {
+    if (_isLoading) return;
     if (!_formKey.currentState!.validate()) return;
 
     if (_typeController.text.isEmpty) {

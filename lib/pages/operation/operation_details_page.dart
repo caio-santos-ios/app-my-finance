@@ -310,47 +310,51 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
   }
 
   Future<void> _save() async {
-    try {
-      final rawValue = _valueController.text
-          .replaceAll(RegExp(r'[^\d,]'), '')
-          .replaceAll(",", ".");
-      final value = double.tryParse(rawValue) ?? 0.0;
+    if (_isLoading) return;
 
-      if (value <= 0) {
-        Toastfy.show(context, "O Valor deve ser maior que zero", "warning");
+    final rawValue = _valueController.text
+        .replaceAll(RegExp(r'[^\d,]'), '')
+        .replaceAll(",", ".");
+    final value = double.tryParse(rawValue) ?? 0.0;
+
+    if (value <= 0) {
+      Toastfy.show(context, "O Valor deve ser maior que zero", "warning");
+      return;
+    }
+    if (widget.type == "transfer") {
+      if (_bankController.text.isEmpty) {
+        Toastfy.show(context, "A Conta de origem é obrigatória", "warning");
         return;
       }
-      if (widget.type == "transfer") {
-        if (_bankController.text.isEmpty) {
-          Toastfy.show(context, "A Conta de origem é obrigatória", "warning");
-          return;
-        }
-        if (_destinationBankController.text.isEmpty) {
-          Toastfy.show(context, "A Conta de destino é obrigatória", "warning");
-          return;
-        }
-        if (_bankController.text == _destinationBankController.text) {
-          Toastfy.show(
-            context,
-            "A Conta de origem e destino devem ser diferentes",
-            "warning",
-          );
-          return;
-        }
-      } else {
-        if (_categoryController.text.isEmpty) {
-          Toastfy.show(context, "A Categoria é obrigatória", "warning");
-          return;
-        }
-        if (_bankController.text.isEmpty) {
-          Toastfy.show(context, "O Banco é obrigatório", "warning");
-          return;
-        }
-        if (_repeat && _recurrence.isEmpty) {
-          Toastfy.show(context, "A Recorrência é obrigatória", "warning");
-          return;
-        }
+      if (_destinationBankController.text.isEmpty) {
+        Toastfy.show(context, "A Conta de destino é obrigatória", "warning");
+        return;
       }
+      if (_bankController.text == _destinationBankController.text) {
+        Toastfy.show(
+          context,
+          "A Conta de origem e destino devem ser diferentes",
+          "warning",
+        );
+        return;
+      }
+    } else {
+      if (_categoryController.text.isEmpty) {
+        Toastfy.show(context, "A Categoria é obrigatória", "warning");
+        return;
+      }
+      if (_bankController.text.isEmpty) {
+        Toastfy.show(context, "O Banco é obrigatório", "warning");
+        return;
+      }
+      if (_repeat && _recurrence.isEmpty) {
+        Toastfy.show(context, "A Recorrência é obrigatória", "warning");
+        return;
+      }
+    }
+
+    try {
+      setState(() => _isLoading = true);
 
       final isRepeating = widget.type == "transfer" ? false : _repeat;
       final datePart = DateFormat("yyyy-MM-dd").format(_selectedDate);

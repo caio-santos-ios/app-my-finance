@@ -26,8 +26,13 @@ class PrimaryButton extends StatelessWidget {
           )
         ),
         child: isLoading
-            ? CircularProgressIndicator(
-                color: Theme.of(context).colorScheme.onPrimary,
+            ? SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
               )
             : Text(
                 text,

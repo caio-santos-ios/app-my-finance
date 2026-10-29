@@ -77,6 +77,7 @@ class _BudgetDetailsPageState extends State<BudgetDetailsPage> {
   }
 
   Future<void> _save() async {
+    if (_isLoading) return;
     try {
       final rawValue = _valueController.text
           .replaceAll(RegExp(r'[^\d,]'), '')
