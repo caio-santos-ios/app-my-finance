@@ -44,7 +44,9 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
   final _bankController = TextEditingController(text: "");
   final _destinationBankController = TextEditingController(text: "");
   final _dateController = TextEditingController(text: "");
+  final _timeController = TextEditingController(text: "");
   DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedTime = TimeOfDay.now();
   bool _repeat = false;
   String _recurrence = "";
   final _picker = ImagePicker();
@@ -126,12 +128,16 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
         _repeat = widget.operation!.repeat;
         _recurrence = widget.operation!.recurrence;
         _selectedDate = widget.operation!.createdAt;
+        _selectedTime = TimeOfDay.fromDateTime(_selectedDate);
         _dateController.text = DateFormat("dd/MM/yyyy").format(_selectedDate);
+        _timeController.text = DateFormat("HH:mm").format(_selectedDate);
       });
     } else {
       _idTemp = Uuid().v4();
       _selectedDate = DateTime.now();
+      _selectedTime = TimeOfDay.fromDateTime(_selectedDate);
       _dateController.text = DateFormat("dd/MM/yyyy").format(_selectedDate);
+      _timeController.text = DateFormat("HH:mm").format(_selectedDate);
     }
     _initial();
   }
@@ -148,6 +154,27 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
       setState(() {
         _selectedDate = picked;
         _dateController.text = DateFormat("dd/MM/yyyy").format(picked);
+      });
+    }
+  }
+
+  Future<void> _selectTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedTime = picked;
+        final hour = picked.hour.toString().padLeft(2, '0');
+        final minute = picked.minute.toString().padLeft(2, '0');
+        _timeController.text = "$hour:$minute";
       });
     }
   }
@@ -326,6 +353,9 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
       }
 
       final isRepeating = widget.type == "transfer" ? false : _repeat;
+      final datePart = DateFormat("yyyy-MM-dd").format(_selectedDate);
+      final timePart =
+          "${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}";
 
       final data = {
         if (isEditing) "id": widget.operation!.id,
@@ -336,7 +366,7 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
         "description": _descriptionController.text,
         "type": widget.type,
         "value": value,
-        "createdAt": DateFormat("yyyy-MM-dd").format(_selectedDate),
+        "createdAt": "${datePart}T$timePart:00Z",
         "repeat": isRepeating,
         "recurrence": isRepeating ? _recurrence : "",
         "parentId": _idTemp,
@@ -597,7 +627,13 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
           },
         ),
         const SizedBox(height: 14),
-        _buildDateField(),
+        Row(
+          children: [
+            Expanded(child: _buildDateField()),
+            const SizedBox(width: 12),
+            Expanded(child: _buildTimeField()),
+          ],
+        ),
         const SizedBox(height: 40),
         PrimaryButton(
           isLoading: _isLoading,
@@ -648,7 +684,13 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
           placeholder: "Banco",
         ),
         const SizedBox(height: 14),
-        _buildDateField(),
+        Row(
+          children: [
+            Expanded(child: _buildDateField()),
+            const SizedBox(width: 12),
+            Expanded(child: _buildTimeField()),
+          ],
+        ),
         const SizedBox(height: 14),
         _buildFieldAttachment(),
         const SizedBox(height: 14),
@@ -774,6 +816,34 @@ class _OperationDetailsPageState extends State<OperationDetailsPage> {
             children: [
               FaIcon(
                 FontAwesomeIcons.calendar,
+                color: Theme.of(context).textTheme.headlineLarge?.color,
+                size: 18,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimeField() {
+    return TextFormField(
+      controller: _timeController,
+      readOnly: true,
+      onTap: _selectTime,
+      style: TextStyle(color: AppColors.dark50),
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+        hintText: "Hora de Lançamento",
+        hintStyle: TextStyle(color: AppColors.dark25),
+        filled: true,
+        suffixIcon: Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FaIcon(
+                FontAwesomeIcons.clock,
                 color: Theme.of(context).textTheme.headlineLarge?.color,
                 size: 18,
               ),
